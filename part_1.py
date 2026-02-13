@@ -15,11 +15,11 @@ plt.ylabel("Total Distance")
 plt.title("Total Distance by User")
 plt.xticks(rotation=45, ha="right")
 plt.tight_layout()
-plt.show() #remember to cite AI
-df["ActivityDate"] = pd.to_datetime(df["ActivityDate"]) #cite AI
+plt.show() 
+df["ActivityDate"] = pd.to_datetime(df["ActivityDate"]) 
 
 
-def plot_calories_by_user(df, user_id, start_date=None, end_date=None): # this whole method is AI lol
+def plot_calories_by_user(df, user_id, start_date=None, end_date=None): 
     # Filter by user
     user_data = df[df["Id"] == user_id]
 
@@ -48,6 +48,9 @@ def plot_calories_by_user(df, user_id, start_date=None, end_date=None): # this w
     plt.xticks(rotation=45)
     plt.tight_layout()
     plt.show()
+
+plot_calories_by_user(df, user_id = 8378563200, start_date=None, end_date=None)
+
 
 # Monday=0, Sunday=6
 df["DayOfWeek"] = df["ActivityDate"].dt.day_name()
@@ -127,3 +130,17 @@ def plot_calories_vs_steps(df, user_id, model):
 # 5. Example usage
 # -----------------------------
 plot_calories_vs_steps(df, user_id=8877689391, model=model)
+
+
+import matplotlib.pyplot as plt
+
+corr_matrix = df.corr(numeric_only=True)
+
+plt.figure(figsize=(8,6))
+plt.imshow(corr_matrix)
+plt.colorbar()
+plt.xticks(range(len(corr_matrix.columns)), corr_matrix.columns, rotation=45)
+plt.yticks(range(len(corr_matrix.columns)), corr_matrix.columns)
+plt.title("Correlation Matrix")
+plt.tight_layout()
+plt.show()
