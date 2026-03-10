@@ -1,9 +1,12 @@
-import pandas as pd
 import os
-import matplotlib.pyplot as plt
 from datetime import datetime
+
+import matplotlib.pyplot as plt
+import pandas as pd
 import statsmodels.api as sm
-df = pd.read_csv("fitbit/daily_activity.csv")
+
+base_directory = os.path.dirname(os.path.abspath(__file__))
+df = pd.read_csv(os.path.join(base_directory, "utils", "data", "daily_activity.csv"))
 unique_users = df["Id"].nunique()
 print(f"{unique_users} unique users")
 distance_by_user = df.groupby("Id")["TotalDistance"].sum()
@@ -15,11 +18,11 @@ plt.ylabel("Total Distance")
 plt.title("Total Distance by User")
 plt.xticks(rotation=45, ha="right")
 plt.tight_layout()
-plt.show() 
-df["ActivityDate"] = pd.to_datetime(df["ActivityDate"]) 
+plt.show()
+df["ActivityDate"] = pd.to_datetime(df["ActivityDate"])
 
 
-def plot_calories_by_user(df, user_id, start_date=None, end_date=None): 
+def plot_calories_by_user(df, user_id, start_date=None, end_date=None):
     # Filter by user
     user_data = df[df["Id"] == user_id]
 
@@ -49,12 +52,19 @@ def plot_calories_by_user(df, user_id, start_date=None, end_date=None):
     plt.tight_layout()
     plt.show()
 
-plot_calories_by_user(df, user_id = 8378563200, start_date=None, end_date=None)
+
+plot_calories_by_user(df, user_id=8378563200, start_date=None, end_date=None)
 
 
 # Monday=0, Sunday=6
 df["DayOfWeek"] = df["ActivityDate"].dt.day_name()
-day_counts = df["DayOfWeek"].value_counts().reindex(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"])
+day_counts = (
+    df["DayOfWeek"]
+    .value_counts()
+    .reindex(
+        ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    )
+)
 plt.figure(figsize=(8, 5))
 plt.bar(day_counts.index, day_counts.values)
 plt.xlabel("Day of the Week")
@@ -92,6 +102,7 @@ y = df["Calories"].astype(float)
 model = sm.OLS(y, X).fit()
 print(model.summary())
 
+
 # -----------------------------
 # 4. Function to plot a user
 # -----------------------------
@@ -100,31 +111,39 @@ def plot_calories_vs_steps(df, user_id, model):
     if user_data.empty:
         print(f"No data for user {user_id}")
         return
-    
+
     # Create dummy variables consistent with model
     X_user = pd.get_dummies(user_data[["TotalSteps", "Id"]], drop_first=True)
-    X_user = sm.add_constant(X_user, has_constant='add')
+    X_user = sm.add_constant(X_user, has_constant="add")
     X_user = X_user.astype(float)  # make sure numeric
-    
+
     # Ensure all columns match model
     for col in model.params.index:
         if col not in X_user.columns:
             X_user[col] = 0
     X_user = X_user[model.params.index]
-    
+
     # Predict calories
     user_data["PredictedCalories"] = model.predict(X_user)
-    
+
     # Plot
-    plt.figure(figsize=(8,5))
-    plt.scatter(user_data["TotalSteps"], user_data["Calories"], label="Actual", color="blue")
-    plt.plot(user_data["TotalSteps"], user_data["PredictedCalories"], color="red", label="Predicted")
+    plt.figure(figsize=(8, 5))
+    plt.scatter(
+        user_data["TotalSteps"], user_data["Calories"], label="Actual", color="blue"
+    )
+    plt.plot(
+        user_data["TotalSteps"],
+        user_data["PredictedCalories"],
+        color="red",
+        label="Predicted",
+    )
     plt.xlabel("Total Steps")
     plt.ylabel("Calories Burned")
     plt.title(f"Calories vs Steps for User {user_id}")
     plt.legend()
     plt.tight_layout()
     plt.show()
+
 
 # -----------------------------
 # 5. Example usage
@@ -136,7 +155,7 @@ import matplotlib.pyplot as plt
 
 corr_matrix = df.corr(numeric_only=True)
 
-plt.figure(figsize=(8,6))
+plt.figure(figsize=(8, 6))
 plt.imshow(corr_matrix)
 plt.colorbar()
 plt.xticks(range(len(corr_matrix.columns)), corr_matrix.columns, rotation=45)
