@@ -3,7 +3,7 @@ import os
 import matplotlib.pyplot as plt
 from datetime import datetime
 import statsmodels.api as sm
-df = pd.read_csv("fitbit/daily_activity.csv")
+df = pd.read_csv("daily_activity.csv")
 unique_users = df["Id"].nunique()
 print(f"{unique_users} unique users")
 distance_by_user = df.groupby("Id")["TotalDistance"].sum()
