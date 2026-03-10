@@ -35,6 +35,8 @@ sleep_df['sleepDay']=sleep_df['date'].dt.normalize()
 df['ActivityDate']=df['ActivityDate'].dt.normalize()
 ##
 
+
+#figuring out the daily total sleep
 grouped=sleep_df.groupby(['Id','sleepDay'])
 counts=grouped.size()
 sleep_daily=counts.reset_index()
@@ -43,10 +45,9 @@ sleep_daily=sleep_daily.rename(columns={0:'sleepMins'})
 
 df['activeMins']=df['VeryActiveMinutes']+df['FairlyActiveMinutes']+df['LightlyActiveMinutes']
 
-df['Id'] = df['Id'].astype('int64')
-sleep_daily['Id'] = sleep_daily['Id'].astype('int64')
+#creating final df with sleeptotals
 final=pd.merge(df,sleep_daily,left_on=['Id','ActivityDate'],right_on=['Id','sleepDay'],how='inner')
-print(final)
+
 
 result=stats.linregress(final['activeMins'],final["sleepMins"])
 print("Slope:", result.slope)
