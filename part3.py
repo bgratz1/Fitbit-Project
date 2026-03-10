@@ -54,3 +54,5 @@ print("Slope:", result.slope)
 print("Intercept:", result.intercept)
 print("R^2:", result.rvalue**2)
 print("p-value:", result.pvalue)
+
+
