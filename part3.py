@@ -2,6 +2,7 @@ import pandas as pd
 import sqlite3
 from datetime import datetime
 from scipy import stats
+import matplotlib.pyplot as plt
 
 df = pd.read_csv("daily_acivity.csv")
 
@@ -48,8 +49,52 @@ sleep_daily['Id'] = sleep_daily['Id'].astype('int64')
 final=pd.merge(df,sleep_daily,left_on=['Id','ActivityDate'],right_on=['Id','sleepDay'],how='inner')
 print(final)
 
-result=stats.linregress(final['activeMins'],final["sleepMins"])
-print("Slope:", result.slope)
-print("Intercept:", result.intercept)
-print("R^2:", result.rvalue**2)
-print("p-value:", result.pvalue)
+result1=stats.linregress(final['activeMins'],final["sleepMins"])
+print("Slope:", result1.slope)
+print("Intercept:", result1.intercept)
+print("R^2:", result1.rvalue**2)
+print("p-value:", result1.pvalue)
+
+plt.scatter(final['activeMins'], final['sleepMins'])
+
+# regression line
+x = final['activeMins']
+y = result1.slope * x + result1.intercept
+plt.plot(x, y)
+
+plt.xlabel("Active Minutes")
+plt.ylabel("Sleep Minutes")
+plt.title("Relationship Between Activity and Sleep")
+
+plt.show()
+plt.pause(5)            # keep it open for 5 seconds
+plt.close()             # close the plot
+
+
+#doing same analysis for sedentary mins
+print(df['SedentaryMinutes'].shape)
+print(final['sleepMins'].shape)
+result2=stats.linregress(final['SedentaryMinutes'],final["sleepMins"])
+print("Slope:", result2.slope)
+print("Intercept:", result2.intercept)
+print("R^2:", result2.rvalue**2)
+print("p-value:", result2.pvalue)
+
+plt.scatter(final['SedentaryMinutes'], final['sleepMins'])
+
+# regression line
+x = final['SedentaryMinutes']
+y = result2.slope * x + result2.intercept
+plt.plot(x, y)
+
+plt.xlabel("sedentary Minutes")
+plt.ylabel("Sleep Minutes")
+plt.title("Relationship Between sedentary and Sleep")
+plt.show()
+plt.pause(5)            # keep it open for 5 seconds
+plt.close()             # close the plot
+
+
+#doing time block analysis
+
+#steps per block
