@@ -30,7 +30,9 @@ sleep_df=pd.DataFrame(rows,columns=['Id','date'])
 
 ## used chatGPT to figure out how to isolate the day from the time the db gave in text
 sleep_df['date']=pd.to_datetime(sleep_df['date'])
-sleep_df['sleepDay']=sleep_df['date'].dt.date
+df['ActivityDate']=pd.to_datetime(df['ActivityDate'])
+sleep_df['sleepDay']=sleep_df['date'].dt.normalize()
+df['ActivityDate']=df['ActivityDate'].dt.normalize()
 ##
 
 grouped=sleep_df.groupby(['Id','sleepDay'])
@@ -41,8 +43,10 @@ sleep_daily=sleep_daily.rename(columns={0:'sleepMins'})
 
 df['activeMins']=df['VeryActiveMinutes']+df['FairlyActiveMinutes']+df['LightlyActiveMinutes']
 
-
+df['Id'] = df['Id'].astype('int64')
+sleep_daily['Id'] = sleep_daily['Id'].astype('int64')
 final=pd.merge(df,sleep_daily,left_on=['Id','ActivityDate'],right_on=['Id','sleepDay'],how='inner')
+print(final)
 
 result=stats.linregress(final['activeMins'],final["sleepMins"])
 print("Slope:", result.slope)
