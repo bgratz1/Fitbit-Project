@@ -126,6 +126,8 @@ merged["ActiveFraction"] = merged["TotalActiveMinutes"] / 1440
 # Dashboard Functions
 # --------------------------------------
 
+def load_data(): 
+    return merged
 
 def get_individual_summary(df, user_id):
     """Returns a summary of all average stats for a single person"""
