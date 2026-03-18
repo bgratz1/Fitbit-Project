@@ -26,7 +26,7 @@ query=f'SELECT Id,date FROM minute_sleep'
 cursor=connection.cursor()
 cursor.execute(query)
 rows = cursor.fetchall()
-connection.close()
+
 sleep_df=pd.DataFrame(rows,columns=['Id','date'])
 
 ## used chatGPT to figure out how to isolate the day from the time the db gave in text
@@ -66,9 +66,9 @@ plt.xlabel("Active Minutes")
 plt.ylabel("Sleep Minutes")
 plt.title("Relationship Between Activity and Sleep")
 
-plt.show()
-plt.pause(5)            # keep it open for 5 seconds
-plt.close()             # close the plot
+#plt.show()
+#plt.pause(5)            # keep it open for 5 seconds
+#plt.close()             # close the plot
 
 
 #doing same analysis for sedentary mins
@@ -80,6 +80,7 @@ print("Intercept:", result2.intercept)
 print("R^2:", result2.rvalue**2)
 print("p-value:", result2.pvalue)
 
+
 plt.scatter(final['SedentaryMinutes'], final['sleepMins'])
 
 # regression line
@@ -90,11 +91,19 @@ plt.plot(x, y)
 plt.xlabel("sedentary Minutes")
 plt.ylabel("Sleep Minutes")
 plt.title("Relationship Between sedentary and Sleep")
-plt.show()
-plt.pause(5)            # keep it open for 5 seconds
-plt.close()             # close the plot
+#plt.show()
+#plt.pause(5)            # keep it open for 5 seconds
+#plt.close()             # close the plot
 
 
 #doing time block analysis
 
 #steps per block
+query2=f'SELECT Id,ActivityHour,StepTotal FROM hourly_steps'
+
+cursor=connection.cursor()
+cursor.execute(query2)
+rows = cursor.fetchall()
+
+step_df=pd.DataFrame(rows,columns=['Id','ActivityHour','StepTotal'])
+print(step_df.head())
