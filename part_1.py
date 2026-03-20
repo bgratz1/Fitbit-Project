@@ -4,6 +4,7 @@ from datetime import datetime
 import matplotlib.pyplot as plt
 import pandas as pd
 import statsmodels.api as sm
+import numpy as np
 
 base_directory = os.path.dirname(os.path.abspath(__file__))
 df = pd.read_csv(os.path.join(base_directory, "utils", "data", "daily_activity.csv"))
@@ -151,15 +152,43 @@ def plot_calories_vs_steps(df, user_id, model):
 plot_calories_vs_steps(df, user_id=8877689391, model=model)
 
 
-import matplotlib.pyplot as plt
-
 corr_matrix = df.corr(numeric_only=True)
 
 plt.figure(figsize=(8, 6))
-plt.imshow(corr_matrix)
+plt.imshow(corr_matrix, cmap = 'coolwarm')
 plt.colorbar()
-plt.xticks(range(len(corr_matrix.columns)), corr_matrix.columns, rotation=45)
+plt.xticks(range(len(corr_matrix.columns)), corr_matrix.columns, rotation=60)
 plt.yticks(range(len(corr_matrix.columns)), corr_matrix.columns)
 plt.title("Correlation Matrix")
 plt.tight_layout()
+plt.show()
+
+# calories burned by activity type
+
+model_df = df[[
+    "Calories",
+    "VeryActiveDistance",
+    "ModeratelyActiveDistance",
+    "LightActiveDistance",
+]].dropna()
+
+X = model_df[[
+    "VeryActiveDistance",
+    "ModeratelyActiveDistance",
+    "LightActiveDistance",
+]]
+
+X = sm.add_constant(X)
+y = model_df["Calories"]
+
+model = sm.OLS(y, X).fit()
+print(model.summary())
+
+coefficients = model.params[1:]
+
+coefficients.plot(kind='bar')
+plt.title("Impact of Distance by Different Activity Levels on Calories")
+plt.ylabel("Expected Calories Burned by Additional Km of Activity")
+plt.xlabel("Activity Level")
+plt.xticks(rotation=10)
 plt.show()
