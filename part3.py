@@ -29,12 +29,12 @@ rows = cursor.fetchall()
 
 sleep_df=pd.DataFrame(rows,columns=['Id','date'])
 
-## used chatGPT to figure out how to isolate the day from the time the db gave in text
+#isolate day from the time
 sleep_df['date']=pd.to_datetime(sleep_df['date'])
 df['ActivityDate']=pd.to_datetime(df['ActivityDate'])
 sleep_df['sleepDay']=sleep_df['date'].dt.normalize()
 df['ActivityDate']=df['ActivityDate'].dt.normalize()
-##
+
 
 grouped=sleep_df.groupby(['Id','sleepDay'])
 counts=grouped.size()
@@ -57,10 +57,10 @@ print("p-value:", result1.pvalue)
 
 plt.scatter(final['activeMins'], final['sleepMins'])
 
-# regression line
-x = final['activeMins']
-y = result1.slope * x + result1.intercept
-plt.plot(x, y)
+#regression line
+x=final['activeMins']
+y=result1.slope*x+result1.intercept
+plt.plot(x,y)
 
 plt.xlabel("Active Minutes")
 plt.ylabel("Sleep Minutes")
