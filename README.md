@@ -50,3 +50,6 @@ The project is structured based on the assignments where each part goes towards 
    ```bash
    pip install streamlit pandas matplotlib numpy sqlite3 statsmodels
    streamlit run dashboard.py
+1. Run dashboard:
+   ```bash
+   streamlit run dashboard.py
