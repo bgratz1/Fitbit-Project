@@ -6,7 +6,31 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 
+PRIMARY = "#87CEEB" 
+SECONDARY = "#284ADF"         
+NEUTRAL = "black"
+BG = "#BFC2C5CA"
+
 st.set_page_config(page_title="Fitbit Dashboard", layout="wide")
+
+st.markdown(f"""
+<style>
+/* Main page background */
+[data-testid="stAppViewContainer"] {{
+    background-color: {BG};
+}}
+
+/* Sidebar background */
+[data-testid="stSidebar"] {{
+    background-color: {BG};
+}}
+
+/* Optional: main text color */
+[data-testid="stAppViewContainer"] .css-18e3th9 {{
+    color: #000000;
+}}
+</style>
+""", unsafe_allow_html=True)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -216,7 +240,7 @@ if page == "Overview":
     pop_users = filtered["Id"].nunique()
     avg_steps = filtered["TotalSteps"].mean()
     avg_calories = filtered["Calories"].mean()
-    avg_sleep = filtered["HoursAsleep"].mean()
+    avg_sleep = filtered[filtered["HoursAsleep"] > 0]["HoursAsleep"].mean()
 
     c1, c2, c3, c4 = st.columns(4)
     c1.metric("Participants", int(pop_users))
@@ -227,10 +251,10 @@ if page == "Overview":
     st.subheader("Total distance by participant")
     distance_by_user = filtered.groupby("Id")["TotalDistance"].sum().sort_values(ascending=False)
     fig, ax = plt.subplots(figsize=(11, 5))
-    distance_by_user.plot(kind="bar", ax=ax)
-    ax.set_xlabel("Participant ID")
-    ax.set_ylabel("Total distance")
-    ax.set_title("Total distance by participant")
+    distance_by_user.plot(kind="bar", ax=ax, color = PRIMARY)
+    ax.set_xlabel("Participant ID", color = NEUTRAL)
+    ax.set_ylabel("Total distance", color = NEUTRAL)
+    ax.set_title("Total distance by participant", color = NEUTRAL)
     plt.xticks(rotation=45, ha="right")
     plt.tight_layout()
     st.pyplot(fig)
@@ -238,24 +262,42 @@ if page == "Overview":
     left, right = st.columns(2)
 
     with left:
-        st.subheader("Average steps over time")
+        fig, ax = plt.subplots()
         daily_steps = filtered.groupby("date")["TotalSteps"].mean()
-        st.line_chart(daily_steps)
+        ax.plot(daily_steps.index, daily_steps.values, color=PRIMARY)
+        ax.set_ylabel("Avg steps", color=NEUTRAL)
+        ax.set_xlabel("Date", color=NEUTRAL)
+        ax.set_title("Average steps over time", color=NEUTRAL)
+        plt.xticks(rotation = 20)
+        plt.tight_layout()
+        st.pyplot(fig)
+
 
     with right:
-        st.subheader("Activity level distribution")
         activity_dist = filtered["ActivityLevel"].value_counts()
-        fig2, ax2 = plt.subplots(figsize=(6, 4))
-        ax2.bar(activity_dist.index, activity_dist.values)
-        ax2.set_ylabel("Number of records")
-        ax2.set_xlabel("Activity level")
-        ax2.set_title("Distribution of activity levels")
+        fig2, ax2 = plt.subplots(figsize=(6, 4.5))
+        ax2.bar(activity_dist.index, activity_dist.values, color = PRIMARY)
+        ax2.set_ylabel("Number of records", color = NEUTRAL)
+        ax2.set_xlabel("Activity level", color = NEUTRAL)
+        ax2.set_title("Distribution of activity levels", color = NEUTRAL)
         plt.xticks(rotation=20)
         plt.tight_layout()
         st.pyplot(fig2)
 
     st.subheader("Most active participants")
-    st.bar_chart(distance_by_user.head(10))
+    st.bar_chart(distance_by_user.head(10), color = PRIMARY)
+
+
+    st.subheader("Workout frequency by day of the week")
+    filtered["DayOfWeek"] = filtered["ActivityDate"].dt.day_name()
+    day_counts = (filtered["DayOfWeek"].value_counts().reindex(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]))
+    fig_day, ax_day = plt.subplots(figsize=(8, 5))
+    ax_day.bar(day_counts.index, day_counts.values, color = PRIMARY)
+    ax_day.set_xlabel("Day of the Week", color = NEUTRAL)
+    ax_day.set_ylabel("Total Number of Workouts", color = NEUTRAL)
+    plt.xticks(rotation=30)
+    plt.tight_layout()
+    st.pyplot(fig_day)
 
     st.subheader("Population summary table")
     summary_table = filtered.groupby("Id")[["TotalDistance", "TotalSteps", "Calories", "HoursAsleep"]].mean().reset_index()
@@ -273,17 +315,17 @@ elif page == "Participant details":
     c1.metric("Total distance", f"{user_df['TotalDistance'].sum():.2f}")
     c2.metric("Avg steps", f"{user_df['TotalSteps'].mean():,.0f}")
     c3.metric("Avg calories", f"{user_df['Calories'].mean():,.0f}")
-    c4.metric("Avg sleep hours", f"{user_df['HoursAsleep'].mean():.2f}")
+    c4.metric("Avg sleep hours", f"{user_df[user_df['HoursAsleep'] > 0]['HoursAsleep'].mean():.2f}")
 
     left, right = st.columns(2)
 
     with left:
         st.subheader("Distance over time")
         fig3, ax3 = plt.subplots(figsize=(8, 4))
-        ax3.plot(user_df["date"], user_df["TotalDistance"])
-        ax3.set_xlabel("Date")
-        ax3.set_ylabel("Distance")
-        ax3.set_title("Daily distance")
+        ax3.plot(user_df["date"], user_df["TotalDistance"], color = PRIMARY)
+        ax3.set_xlabel("Date", color = NEUTRAL)
+        ax3.set_ylabel("Distance", color = NEUTRAL)
+        ax3.set_title("Daily distance", color = NEUTRAL)
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(fig3)
@@ -291,24 +333,24 @@ elif page == "Participant details":
     with right:
         st.subheader("Calories over time")
         fig4, ax4 = plt.subplots(figsize=(8, 4))
-        ax4.plot(user_df["date"], user_df["Calories"])
-        ax4.set_xlabel("Date")
-        ax4.set_ylabel("Calories")
-        ax4.set_title("Daily calories")
+        ax4.plot(user_df["date"], user_df["Calories"], color = PRIMARY)
+        ax4.set_xlabel("Date", color = NEUTRAL)
+        ax4.set_ylabel("Calories", color = NEUTRAL)
+        ax4.set_title("Daily calories", color = NEUTRAL)
         plt.xticks(rotation=45)
         plt.tight_layout()
         st.pyplot(fig4)
 
     st.subheader("Calories vs steps")
     fig5, ax5 = plt.subplots(figsize=(7, 4))
-    ax5.scatter(user_df["TotalSteps"], user_df["Calories"], alpha=0.7)
+    ax5.scatter(user_df["TotalSteps"], user_df["Calories"], color = PRIMARY, alpha=0.7)
     if len(user_df) >= 2:
         m, b = np.polyfit(user_df["TotalSteps"], user_df["Calories"], 1)
         x_line = np.linspace(user_df["TotalSteps"].min(), user_df["TotalSteps"].max(), 100)
-        ax5.plot(x_line, m * x_line + b, linestyle="--")
-    ax5.set_xlabel("Total steps")
-    ax5.set_ylabel("Calories")
-    ax5.set_title("Calories vs steps")
+        ax5.plot(x_line, m * x_line + b, color = SECONDARY, linestyle="--")
+    ax5.set_xlabel("Total steps", color = NEUTRAL)
+    ax5.set_ylabel("Calories", color = NEUTRAL)
+    ax5.set_title("Calories vs steps", color = NEUTRAL)
     plt.tight_layout()
     st.pyplot(fig5)
 
@@ -318,14 +360,14 @@ elif page == "Participant details":
         st.info("No heart-rate or intensity data available for this participant.")
     else:
         fig6, axes = plt.subplots(2, 1, figsize=(10, 6), sharex=False)
-        axes[0].plot(heart_df["Time"], heart_df["Value"])
-        axes[0].set_title("Heart rate over time")
-        axes[0].set_ylabel("Heart rate")
+        axes[0].plot(heart_df["Time"], heart_df["Value"], color = PRIMARY)
+        axes[0].set_title("Heart rate over time", color = NEUTRAL)
+        axes[0].set_ylabel("Heart rate", color = NEUTRAL)
 
-        axes[1].plot(intensity_df["ActivityHour"], intensity_df["TotalIntensity"])
-        axes[1].set_title("Total intensity over time")
-        axes[1].set_ylabel("Intensity")
-        axes[1].set_xlabel("Time")
+        axes[1].plot(intensity_df["ActivityHour"], intensity_df["TotalIntensity"], color = SECONDARY)
+        axes[1].set_title("Total intensity over time", color = NEUTRAL)
+        axes[1].set_ylabel("Intensity", color = NEUTRAL)
+        axes[1].set_xlabel("Time", color = NEUTRAL)
         plt.tight_layout()
         st.pyplot(fig6)
 
@@ -340,40 +382,41 @@ elif page == "Participant details":
 
 else:
     st.header("Sleep analysis")
+    sleep_filtered = filtered[filtered["HoursAsleep"] > 0].copy()  
     c1, c2, c3 = st.columns(3)
-    c1.metric("Avg sleep hours", f"{filtered['HoursAsleep'].mean():.2f}")
-    c2.metric("Avg active minutes", f"{filtered['TotalActiveMinutes'].mean():.1f}")
-    c3.metric("Avg sedentary minutes", f"{filtered['SedentaryMinutes'].mean():.1f}")
+    c1.metric("Avg sleep hours", f"{sleep_filtered['HoursAsleep'].mean():.2f}")
+    c2.metric("Avg active minutes", f"{sleep_filtered['TotalActiveMinutes'].mean():.1f}")
+    c3.metric("Avg sedentary minutes", f"{sleep_filtered['SedentaryMinutes'].mean():.1f}")
 
     st.subheader("Sleep vs active minutes")
     fig7, ax7 = plt.subplots(figsize=(8, 5))
-    plot_df = filtered.dropna(subset=["HoursAsleep", "TotalActiveMinutes"])
-    ax7.scatter(plot_df["TotalActiveMinutes"], plot_df["HoursAsleep"], alpha=0.5, edgecolors="k", linewidths=0.3)
+    plot_df = sleep_filtered.dropna(subset=["HoursAsleep", "TotalActiveMinutes"])
+    ax7.scatter(plot_df["TotalActiveMinutes"], plot_df["HoursAsleep"], color = PRIMARY, alpha=0.5, edgecolors="k", linewidths=0.3)
     if len(plot_df) >= 2:
         m, b = np.polyfit(plot_df["TotalActiveMinutes"], plot_df["HoursAsleep"], 1)
         x_line = np.linspace(plot_df["TotalActiveMinutes"].min(), plot_df["TotalActiveMinutes"].max(), 100)
-        ax7.plot(x_line, m * x_line + b, color="red", linestyle="--")
+        ax7.plot(x_line, m * x_line + b, color = SECONDARY, linestyle="--")
         corr = plot_df["TotalActiveMinutes"].corr(plot_df["HoursAsleep"])
         ax7.annotate(f"r = {corr:.2f}", xy=(0.05, 0.93), xycoords="axes fraction")
-    ax7.set_xlabel("Total active minutes")
-    ax7.set_ylabel("Hours asleep")
-    ax7.set_title("Relationship between activity and sleep")
+    ax7.set_xlabel("Total active minutes", color = NEUTRAL)
+    ax7.set_ylabel("Hours asleep", color = NEUTRAL)
+    ax7.set_title("Relationship between activity and sleep", color = NEUTRAL)
     plt.tight_layout()
     st.pyplot(fig7)
 
     st.subheader("Sleep vs sedentary minutes")
     fig8, ax8 = plt.subplots(figsize=(8, 5))
-    plot_df2 = filtered.dropna(subset=["HoursAsleep", "SedentaryMinutes"])
-    ax8.scatter(plot_df2["SedentaryMinutes"], plot_df2["HoursAsleep"], alpha=0.5, edgecolors="k", linewidths=0.3)
+    plot_df2 = sleep_filtered.dropna(subset=["HoursAsleep", "SedentaryMinutes"])
+    ax8.scatter(plot_df2["SedentaryMinutes"], plot_df2["HoursAsleep"], color = PRIMARY, alpha=0.5, edgecolors="k", linewidths=0.3)
     if len(plot_df2) >= 2:
         m, b = np.polyfit(plot_df2["SedentaryMinutes"], plot_df2["HoursAsleep"], 1)
         x_line = np.linspace(plot_df2["SedentaryMinutes"].min(), plot_df2["SedentaryMinutes"].max(), 100)
-        ax8.plot(x_line, m * x_line + b, color="red", linestyle="--")
+        ax8.plot(x_line, m * x_line + b, color=SECONDARY, linestyle="--")
         corr = plot_df2["SedentaryMinutes"].corr(plot_df2["HoursAsleep"])
         ax8.annotate(f"r = {corr:.2f}", xy=(0.05, 0.93), xycoords="axes fraction")
-    ax8.set_xlabel("Sedentary minutes")
-    ax8.set_ylabel("Hours asleep")
-    ax8.set_title("Relationship between sedentary time and sleep")
+    ax8.set_xlabel("Sedentary minutes", color = NEUTRAL)
+    ax8.set_ylabel("Hours asleep", color = NEUTRAL)
+    ax8.set_title("Relationship between sedentary time and sleep", color = NEUTRAL)
     plt.tight_layout()
     st.pyplot(fig8)
 
@@ -381,35 +424,40 @@ else:
 
     with left:
         st.subheader("Sleep category distribution")
-        sleep_dist = filtered["SleepCategory"].value_counts(dropna=False)
-        fig9, ax9 = plt.subplots(figsize=(6, 4))
-        ax9.bar(sleep_dist.index.astype(str), sleep_dist.values)
-        ax9.set_xlabel("Sleep category")
-        ax9.set_ylabel("Count")
-        ax9.set_title("Sleep quality categories")
+        sleep_dist = sleep_filtered["SleepCategory"].value_counts(dropna=False)
+        fig9, ax9 = plt.subplots(figsize=(6, 4.5))
+        ax9.bar(sleep_dist.index.astype(str), sleep_dist.values, color = PRIMARY)
+        ax9.set_xlabel("Sleep category", color = NEUTRAL)
+        ax9.set_ylabel("Count", color = NEUTRAL)
+        ax9.set_title("Sleep quality categories", color = NEUTRAL)
         plt.xticks(rotation=15)
         plt.tight_layout()
         st.pyplot(fig9)
 
     with right:
         st.subheader("Time-of-day patterns")
-        block_df = get_block_averages(hourly_steps, hourly_calories, filtered)
+        block_df = get_block_averages(hourly_steps, hourly_calories, sleep_filtered)
         metric_choice = st.selectbox("Metric by 4-hour block", ["Steps", "Calories", "SleepMinutes"])
         fig10, ax10 = plt.subplots(figsize=(7, 4))
-        ax10.bar(block_df.index, block_df[metric_choice])
-        ax10.set_xlabel("4-hour block")
-        ax10.set_ylabel(metric_choice)
-        ax10.set_title(f"Average {metric_choice} by 4-hour block")
+        ax10.bar(block_df.index, block_df[metric_choice].values, color={
+            "Steps": PRIMARY,
+            "Calories": PRIMARY,
+            "SleepMinutes": PRIMARY
+        }[metric_choice])
+        ax10.set_xlabel("4-hour block", color=NEUTRAL)
+        ax10.set_ylabel(metric_choice, color=NEUTRAL)
+        ax10.set_title(f"Average {metric_choice} by 4-hour block", color=NEUTRAL)
         plt.tight_layout()
         st.pyplot(fig10)
 
+
     st.subheader("Selected participant sleep profile")
-    sleep_user = filtered[filtered["Id"] == selected_user].sort_values("date")
+    sleep_user = sleep_filtered[sleep_filtered["Id"] == selected_user].sort_values("date")
     fig11, ax11 = plt.subplots(figsize=(9, 4))
-    ax11.plot(sleep_user["date"], sleep_user["HoursAsleep"])
-    ax11.set_xlabel("Date")
-    ax11.set_ylabel("Hours asleep")
-    ax11.set_title(f"Sleep over time for participant {selected_user}")
+    ax11.plot(sleep_user["date"], sleep_user["HoursAsleep"], color = PRIMARY)
+    ax11.set_xlabel("Date", color = NEUTRAL)
+    ax11.set_ylabel("Hours asleep", color = NEUTRAL)
+    ax11.set_title(f"Sleep over time for participant {selected_user}", color = NEUTRAL)
     plt.xticks(rotation=45)
     plt.tight_layout()
     st.pyplot(fig11)
